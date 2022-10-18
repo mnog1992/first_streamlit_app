@@ -5,13 +5,6 @@ import snowflake.connector
 from urllib.error import URLError
 
 
-# Allow the end user to add a fruit to the list
-def insert_row_snowflake(new_fruit):
-  with my_cnx.cursor() as my_cur: 
-    my_cur.execute("insert into fruit_load_list values('" + new_fruit + "')")
-    return "Thanks for adding" + new_fruit
-
-
 streamlit.title('My Parents New Healthy Diner')
 
 streamlit.header('Breakfast Favorites') 
@@ -34,6 +27,13 @@ streamlit.header('Fruityvice Fruit Advice!')
 fruityvice_response = requests.get("https://fruityvice.com/api/fruit/watermelon")
 fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
 streamlit.dataframe(fruityvice_normalized)
+
+my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+# Allow the end user to add a fruit to the list
+def insert_row_snowflake(new_fruit):
+  with my_cnx.cursor() as my_cur: 
+    my_cur.execute("insert into fruit_load_list values('" + new_fruit + "')")
+    return "Thanks for adding" + new_fruit
 
 try:
   fruit_choice = streamlit.text_input('What fruit would you like information about?')
