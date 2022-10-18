@@ -2,6 +2,15 @@ import streamlit
 import pandas
 import requests
 import snowflake.connector
+from urllib.error import URLError
+
+
+# Allow the end user to add a fruit to the list
+def insert_row_snowflake(new_fruit):
+  with my_cnx.cursor() as my_cur: 
+    my_cur.execute("insert into fruit_load_list values(new_fruit))
+    return "Thanks for adding" + new_fruit
+
 
 streamlit.title('My Parents New Healthy Diner')
 
@@ -26,12 +35,19 @@ fruityvice_response = requests.get("https://fruityvice.com/api/fruit/watermelon"
 fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
 streamlit.dataframe(fruityvice_normalized)
 
-fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
-streamlit.write('The user entered ', fruit_choice)
-fruityvice_response = requests.get("https://fruityvice.com/api/fruit/"+fruit_choice)
-fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
-streamlit.dataframe(fruityvice_normalized)
+try:
+  fruit_choice = streamlit.text_input('What fruit would you like information about?')
+  if not fruit_choice:
+    streamlit.error("Please select a fruit to get information.")
+  else:
+    fruityvice_response = requests.get("https://fruityvice.com/api/fruit/"+fruit_choice)
+    fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+    streamlit.dataframe(fruityvice_normalized)
+    insert_row_snowflake(fruit_choice)
+except URLError as e:
+  streamlit.error()
 
+# streamlit.stop()
 # my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
 # my_cur = my_cnx.cursor()
 # my_cur.execute("SELECT CURRENT_USER(), CURRENT_ACCOUNT(), CURRENT_REGION()")
@@ -39,9 +55,13 @@ streamlit.dataframe(fruityvice_normalized)
 # streamlit.text("Hello from Snowflake:")
 # streamlit.text(my_data_row)
 
-my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
-my_cur = my_cnx.cursor()
-my_cur.execute("select * from fruit_load_list")
-my_data_rows = my_cur.fetchall()
-streamlit.header("The fruit load list contains:")
-streamlit.dataframe(my_data_rows)
+# my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+# my_cur = my_cnx.cursor()
+# my_cur.execute("select * from fruit_load_list")
+# my_data_rows = my_cur.fetchall()
+# streamlit.header("The fruit load list contains:")
+# streamlit.dataframe(my_data_rows)
+
+
+                   
+           
